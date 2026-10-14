@@ -107,20 +107,28 @@ Para a pergunta exata: se a de 10s chegasse primeiro, a de 5s terminaria aos
 5s aos 5s. O total do sistema seria sempre 15s, contra 10s no modelo
 multithread.
 
-Reproduzimos ao vivo com `--sequencial`, e o resultado exige um cuidado: o par
-de tempos **varia a cada execução**. Com os dois clientes disparados juntos e
-os parâmetros padrão (15s de trabalho cada), medimos **15,01s e 20,02s**.
-Repetindo com `--dias 5 --leituras 4` (7s cada), saíram ora **7,0s e 9,0s**,
-ora **12,0s e 14,0s**, alternando entre execuções. A causa é a ordem de
-chegada das conexões e o keep-alive do HTTP, que decide quanto do trabalho de
-um cliente consegue se intercalar com o do outro.
+Reproduzimos ao vivo com `--sequencial`, e a medição exige um cuidado que a
+primeira leitura dos nossos dados não teve: **o cronômetro interno do cliente
+engana nesse cenário**. Ele só começa a contar depois de `conectar()`, que faz
+uma chamada `status_servidor()` — e essa chamada também entra na fila. Com uma
+thread só, o segundo cliente fica parado no handshake enquanto o primeiro é
+atendido, e toda essa espera desaparece do número que ele imprime.
 
-O que não varia é o essencial, e é isso que afirmamos: todo o processamento
-aparece sob `[MainThread]`, e os dois clientes **deixam de terminar juntos**.
-No modo multithread eles mediram 15,01s e 15,02s, praticamente idênticos,
-porque nenhum dependia do outro. Com uma thread só, o tempo de resposta de
-cada cliente passa a depender de quem chegou antes e do tamanho do pedido
-alheio — é a perda de isolamento entre clientes.
+Medindo pelo relógio real, com disparo simultâneo, o resultado é estável. Com
+os parâmetros padrão (15s de trabalho por cliente), o último a terminar levou
+**30,1s** no sequencial contra **15,1s** no multithread — enquanto os
+cronômetros internos marcavam uns enganosos 15,01s e 20,01s. Com
+`--dias 5 --leituras 4` (7s por cliente), o último a terminar deu **14,08s,
+14,08s e 14,09s** em três execuções, contra **7,07s e 7,10s** no multithread.
+
+O invariante é esse: com uma thread, o tempo total para atender os dois
+clientes é a **soma** de todo o trabalho; com várias, é o **maior** deles. Todo
+o processamento aparece sob `[MainThread]`. O que varia é apenas qual dos dois
+paga a espera, porque depende da ordem de chegada das conexões.
+
+E essa dependência da ordem é parte da resposta: com uma thread só, o tempo de
+resposta de um cliente passa a depender de quem chegou antes e do tamanho do
+pedido alheio. Perde-se o isolamento entre clientes.
 
 Há ainda um efeito colateral que o log evidencia: a operação curta fica
 *refém* da longa. Um cálculo que levaria milissegundos pode esperar dez

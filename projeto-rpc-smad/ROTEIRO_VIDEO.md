@@ -238,16 +238,20 @@ python3 servidor_sincrono.py --sequencial
 
 Dispare os dois clientes juntos de novo.
 
-**Leia os dois tempos na tela — não decore um par.** O par varia a cada
-execução, porque depende da ordem de chegada das conexões. O que se repete
-sempre é que os dois clientes **deixam de terminar juntos** e que tudo aparece
-sob `MainThread`. Narre apontando para os números que saíram:
+**O disparo simultâneo aqui deixou de ser organização e virou evidência.** O
+cronômetro que cada cliente imprime começa a contar só depois do handshake, e
+esse handshake também espera na fila — então, se vocês dispararem escalonado,
+os números na tela vão parecer mostrar uma sobreposição que não existe. Use o
+"3, 2, 1" do checklist a sério, e narre pelo relógio, não pelos dois totais:
 
 > "Agora todo o processamento aparece sob `MainThread` e as requisições
-> entraram em fila. Repare que os dois clientes não terminam mais no mesmo
-> tempo, como terminavam no multithread — um terminou em X e o outro em Y. É
-> exatamente a pergunta da avaliação: com uma thread só, a operação curta fica
-> refém da longa, e o tempo de cada cliente passa a depender do pedido alheio."
+> entraram em fila. Cronometrem do nosso lado: no multithread os dois clientes
+> terminaram juntos, aqui um leva cerca do dobro do outro. Com uma thread só, o
+> tempo total passa a ser a soma do trabalho dos dois, e a operação curta fica
+> refém da longa."
+
+Não prometa qual dos dois clientes vai pagar a espera — depende da ordem de
+chegada das conexões e troca entre execuções.
 
 Se sobrar tempo, mostre também `python3 servidor_assincrono.py --workers 1`,
 onde o cliente continua livre mas os jobs se enfileiram — útil para separar
@@ -267,7 +271,7 @@ câmera** — use estes ganchos e fale com naturalidade. Alternem: A responde a
 | 2 | Ficou bloqueado, thread parada no socket. Mas o servidor não estava ocioso — atendia o outro cliente. |
 | 3 | 8s de atividades locais, submeteu a segunda operação antes da primeira terminar e consultou o estado dos dois jobs. |
 | 4 | Um cliente lento não atrapalha o outro. Os dois `Worker-SYNC` começaram e terminaram no mesmo milissegundo. |
-| 5 | Fila. A de 5s terminaria aos 15s se chegasse atrás da de 10s. Ao vivo: os tempos variam por execução, mas os clientes deixam de terminar juntos e tudo cai sob `MainThread`. |
+| 5 | Fila. A de 5s terminaria aos 15s se chegasse atrás da de 10s. Ao vivo, pelo relógio: 30,1s no sequencial contra 15,1s no multithread. Com uma thread o total é a soma do trabalho, com várias é o maior. |
 | 6 | Não. Mesmo módulo `operacoes.py` nos dois servidores, mesmos 10,0s. A assincronia até adiciona overhead de rede. |
 | 7 | Lados opostos da chamada e independentes: nossa Parte I tem cliente síncrono **com** servidor concorrente. |
 | 8 | Espera simultânea, computação concorrente. Depende das vCPUs da VM1, e o GIL do CPython só não atrapalha porque `sleep` o libera. |
