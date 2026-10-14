@@ -1,4 +1,4 @@
-# SMAD-RPC — Trabalho 02 de Sistemas Distribuídos
+# SMAD-RPC: Trabalho 02 de Sistemas Distribuídos
 
 RPC **síncrona** e **assíncrona**, ambas com servidor **multithread**, sobre a
 mesma infraestrutura virtualizada da Unidade I (3 VMs em dois segmentos de rede).
