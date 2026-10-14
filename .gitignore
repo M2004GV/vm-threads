@@ -1,2 +1,4 @@
 bin/
 *.class
+__pycache__/
+*.pyc
