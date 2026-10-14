@@ -15,7 +15,7 @@ Deixe tudo pronto e testado **antes** de apertar o REC. Gravar e configurar ao
 mesmo tempo é o jeito mais rápido de perder meia hora.
 
 - [ ] As três VMs ligadas, VM2 e VM3 com IP do DHCP (`ip -br a`)
-- [ ] `ping 192.168.50.1` e `ping 8.8.8.8` funcionando nos dois clientes
+- [ ] `ping 192.168.10.1` e `ping 8.8.8.8` funcionando nos dois clientes
 - [ ] Repositório clonado nas três VMs, na mesma pasta
 - [ ] Teste completo rodado uma vez, do começo ao fim, sem gravar
 - [ ] Portas 5002 e 5003 liberadas na VM1 (`sudo ufw status`)
@@ -60,7 +60,7 @@ Mostre em **Configurações → Rede** de cada VM:
 ### 1.2 Na VM1 — mostre a configuração funcionando
 
 ```bash
-ip -br a                                   # enp0s3 (NAT) e enp0s8 (192.168.50.1)
+ip -br a                                   # enp0s3 (NAT) e enp0s8 (192.168.10.1)
 cat /etc/netplan/*.yaml                    # IP estático da interface interna
 sysctl net.ipv4.ip_forward                 # deve retornar 1
 sudo iptables -t nat -L POSTROUTING -n -v  # a regra MASQUERADE e os contadores
@@ -75,10 +75,10 @@ e DNS para a Rede B.
 ### 1.3 Nos clientes — os testes de conexão
 
 ```bash
-ip -br a                     # IP na Rede B (192.168.50.0/24)
-ip route | grep default      # default via 192.168.50.1
-ping -c 3 192.168.50.1       # alcança o gateway
-ping -c 3 192.168.50.<ip-da-outra-vm>   # VM2 e VM3 se enxergam na Rede B
+ip -br a                     # IP na faixa 192.168.10.100-200
+ip route | grep default      # default via 192.168.10.1
+ping -c 3 192.168.10.1       # alcança o gateway
+ping -c 3 192.168.10.<ip-da-outra-vm>   # VM2 e VM3 se enxergam na Rede B
 ping -c 3 8.8.8.8            # prova o NAT
 ping -c 3 google.com         # prova o DNS vindo do DHCP
 ```
