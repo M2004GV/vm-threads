@@ -15,7 +15,7 @@ try:
 except Exception:
     pass
 
-SERVIDOR_PADRAO = "192.168.10.1"   # VM1 na Rede B (interface enp0s8)
+SERVIDOR_PADRAO = "192.168.50.1"   # VM1 na Rede B (interface enp0s8)
 PORTA_SINCRONA = 5002
 PORTA_ASSINCRONA = 5003
 

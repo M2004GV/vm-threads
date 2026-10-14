@@ -7,7 +7,7 @@ Cada chamada remota bloqueia: a linha seguinte so executa depois da resposta.
 Uso:
     python3 cliente_sincrono.py
     python3 cliente_sincrono.py --nome CLIENTE-1 --dias 10
-    python3 cliente_sincrono.py --servidor 192.168.10.1 --porta 5002
+    python3 cliente_sincrono.py --servidor 192.168.50.1 --porta 5002
 """
 
 import time

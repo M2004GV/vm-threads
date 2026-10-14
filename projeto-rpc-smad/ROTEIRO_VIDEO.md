@@ -15,7 +15,7 @@ Deixe tudo pronto e testado **antes** de apertar o REC. Gravar e configurar ao
 mesmo tempo é o jeito mais rápido de perder meia hora.
 
 - [ ] As três VMs ligadas, VM2 e VM3 com IP do DHCP (`ip -br a`)
-- [ ] `ping 192.168.10.1` e `ping 8.8.8.8` funcionando nos dois clientes
+- [ ] `ping 192.168.50.1` e `ping 8.8.8.8` funcionando nos dois clientes
 - [ ] Repositório clonado nas três VMs, na mesma pasta
 - [ ] Teste completo rodado uma vez, do começo ao fim, sem gravar
 - [ ] Portas 5002 e 5003 liberadas na VM1 (`sudo ufw status`)
@@ -60,7 +60,7 @@ Mostre em **Configurações → Rede** de cada VM:
 ### 1.2 Na VM1 — mostre a configuração funcionando
 
 ```bash
-ip -br a                                   # enp0s3 (NAT) e enp0s8 (192.168.10.1)
+ip -br a                                   # enp0s3 (NAT) e enp0s8 (192.168.50.1)
 cat /etc/netplan/*.yaml                    # IP estático da interface interna
 sysctl net.ipv4.ip_forward                 # deve retornar 1
 sudo iptables -t nat -L POSTROUTING -n -v  # a regra MASQUERADE e os contadores
@@ -75,10 +75,10 @@ e DNS para a Rede B.
 ### 1.3 Nos clientes — os testes de conexão
 
 ```bash
-ip -br a                     # IP na faixa 192.168.10.100-200
-ip route | grep default      # default via 192.168.10.1
-ping -c 3 192.168.10.1       # alcança o gateway
-ping -c 3 192.168.10.<ip-da-outra-vm>   # VM2 e VM3 se enxergam na Rede B
+ip -br a                     # IP na Rede B (192.168.50.0/24)
+ip route | grep default      # default via 192.168.50.1
+ping -c 3 192.168.50.1       # alcança o gateway
+ping -c 3 192.168.50.<ip-da-outra-vm>   # VM2 e VM3 se enxergam na Rede B
 ping -c 3 8.8.8.8            # prova o NAT
 ping -c 3 google.com         # prova o DNS vindo do DHCP
 ```
@@ -238,10 +238,16 @@ python3 servidor_sincrono.py --sequencial
 
 Dispare os dois clientes juntos de novo.
 
+**Leia os dois tempos na tela — não decore um par.** O par varia a cada
+execução, porque depende da ordem de chegada das conexões. O que se repete
+sempre é que os dois clientes **deixam de terminar juntos** e que tudo aparece
+sob `MainThread`. Narre apontando para os números que saíram:
+
 > "Agora todo o processamento aparece sob `MainThread` e as requisições
-> entraram em fila. Um cliente terminou em 7 segundos e o outro em 14. É
+> entraram em fila. Repare que os dois clientes não terminam mais no mesmo
+> tempo, como terminavam no multithread — um terminou em X e o outro em Y. É
 > exatamente a pergunta da avaliação: com uma thread só, a operação curta fica
-> refém da longa."
+> refém da longa, e o tempo de cada cliente passa a depender do pedido alheio."
 
 Se sobrar tempo, mostre também `python3 servidor_assincrono.py --workers 1`,
 onde o cliente continua livre mas os jobs se enfileiram — útil para separar
@@ -261,7 +267,7 @@ câmera** — use estes ganchos e fale com naturalidade. Alternem: A responde a
 | 2 | Ficou bloqueado, thread parada no socket. Mas o servidor não estava ocioso — atendia o outro cliente. |
 | 3 | 8s de atividades locais, submeteu a segunda operação antes da primeira terminar e consultou o estado dos dois jobs. |
 | 4 | Um cliente lento não atrapalha o outro. Os dois `Worker-SYNC` começaram e terminaram no mesmo milissegundo. |
-| 5 | Fila. A de 5s terminaria aos 15s se chegasse atrás da de 10s. Mostramos ao vivo: 7,03s e 14,04s. |
+| 5 | Fila. A de 5s terminaria aos 15s se chegasse atrás da de 10s. Ao vivo: os tempos variam por execução, mas os clientes deixam de terminar juntos e tudo cai sob `MainThread`. |
 | 6 | Não. Mesmo módulo `operacoes.py` nos dois servidores, mesmos 10,0s. A assincronia até adiciona overhead de rede. |
 | 7 | Lados opostos da chamada e independentes: nossa Parte I tem cliente síncrono **com** servidor concorrente. |
 | 8 | Espera simultânea, computação concorrente. Depende das vCPUs da VM1, e o GIL do CPython só não atrapalha porque `sleep` o libera. |

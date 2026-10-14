@@ -9,7 +9,7 @@ local; no cliente síncrono ele é um buraco vazio.
 Uso:
     python3 cliente_assincrono.py
     python3 cliente_assincrono.py --nome CLIENTE-1 --dias 10
-    python3 cliente_assincrono.py --servidor 192.168.10.1 --porta 5003
+    python3 cliente_assincrono.py --servidor 192.168.50.1 --porta 5003
 """
 
 import time

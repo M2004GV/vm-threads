@@ -107,10 +107,20 @@ Para a pergunta exata: se a de 10s chegasse primeiro, a de 5s terminaria aos
 5s aos 5s. O total do sistema seria sempre 15s, contra 10s no modelo
 multithread.
 
-Isso não é hipótese: reproduzimos ao vivo com `--sequencial`. Com dois
-clientes disparados juntos, o primeiro da fila terminou em **7,03s** e o
-segundo em **14,04s**, e todo o processamento apareceu no log sob
-`[MainThread]`. Em modo multithread, o mesmo cenário dá ~7s para os dois.
+Reproduzimos ao vivo com `--sequencial`, e o resultado exige um cuidado: o par
+de tempos **varia a cada execução**. Com os dois clientes disparados juntos e
+os parâmetros padrão (15s de trabalho cada), medimos **15,01s e 20,02s**.
+Repetindo com `--dias 5 --leituras 4` (7s cada), saíram ora **7,0s e 9,0s**,
+ora **12,0s e 14,0s**, alternando entre execuções. A causa é a ordem de
+chegada das conexões e o keep-alive do HTTP, que decide quanto do trabalho de
+um cliente consegue se intercalar com o do outro.
+
+O que não varia é o essencial, e é isso que afirmamos: todo o processamento
+aparece sob `[MainThread]`, e os dois clientes **deixam de terminar juntos**.
+No modo multithread eles mediram 15,01s e 15,02s, praticamente idênticos,
+porque nenhum dependia do outro. Com uma thread só, o tempo de resposta de
+cada cliente passa a depender de quem chegou antes e do tamanho do pedido
+alheio — é a perda de isolamento entre clientes.
 
 Há ainda um efeito colateral que o log evidencia: a operação curta fica
 *refém* da longa. Um cálculo que levaria milissegundos pode esperar dez

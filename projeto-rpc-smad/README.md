@@ -14,18 +14,18 @@ mesma infraestrutura virtualizada da Unidade I (3 VMs em dois segmentos de rede)
             |
    +--------+--------+
    |   VM1-Gateway   |  enp0s3: NAT            (Rede A - externa)
-   |  Roteador NAT   |  enp0s8: 192.168.10.1   (Rede B - interna)
+   |  Roteador NAT   |  enp0s8: 192.168.50.1   (Rede B - interna)
    |  Servidor DHCP  |
    |  Servidores RPC |  servidor_sincrono.py    :5002
    |                 |  servidor_assincrono.py  :5003
    +--------+--------+
             |
-   [Rede B - 192.168.10.0/24 - isolada]
+   [Rede B - 192.168.50.0/24 - isolada]
             |
      +------+------+
      |             |
 +----+-----+  +----+-----+
-| VM2      |  | VM3      |   IP via DHCP (.100 - .200)
+| VM2      |  | VM3      |   IP via DHCP na Rede B
 | Cliente 1|  | Cliente 2|   cliente_sincrono.py / cliente_assincrono.py
 +----------+  +----------+
 ```
@@ -126,9 +126,9 @@ Conferir a rede antes de executar:
 
 ```bash
 # nos clientes (VM2 / VM3)
-ip -br a                     # IP recebido do DHCP, faixa 192.168.10.100-200
-ip route | grep default      # default via 192.168.10.1
-ping -c 2 192.168.10.1       # gateway responde
+ip -br a                     # IP recebido do DHCP na Rede B (192.168.50.0/24)
+ip route | grep default      # default via 192.168.50.1
+ping -c 2 192.168.50.1       # gateway responde
 ping -c 2 8.8.8.8            # prova o NAT da VM1
 ```
 
@@ -179,7 +179,7 @@ começa a ser atendido quando o primeiro termina.
 ### Parâmetros dos clientes
 
 ```
---servidor IP    IP da VM1 na Rede B      (padrão 192.168.10.1)
+--servidor IP    IP da VM1 na Rede B      (padrão 192.168.50.1)
 --porta N        5002 síncrono, 5003 assíncrono
 --nome TEXTO     identificação nos logs   (padrão: hostname)
 --dias N         operação demorada, 1s por dia       (padrão 10 → 10s)
